@@ -1,20 +1,28 @@
 package models;
 
-import core.BaseModel;
+import core.Database;
 import java.sql.*;
 
-public class UserModel extends BaseModel {
+public class UserModel {
+    Database db;
+
+    public UserModel() {
+        db = new Database();
+    }
+
     public String login(String username, String password) {
+        String query = "SELECT u.*, r.role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.username = ? AND u.password = ?";
         try {
-            ResultSet rs = executeQuery(
-                "SELECT roles.role_name FROM users JOIN roles ON users.role_id = roles.id WHERE username=? AND password=?",
-                username, password
-            );
+            PreparedStatement stmt = db.getConnection().prepareStatement(query);
+            stmt.setString(1, username);
+            stmt.setString(2, password);
+            ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                return rs.getString("role_name"); // returns role if login successful
+                // Return role name
+                return rs.getString("role_name");
             }
         } catch (SQLException e) {
-            System.out.println("❌ Login failed: " + e.getMessage());
+            e.printStackTrace();
         }
         return null;
     }
